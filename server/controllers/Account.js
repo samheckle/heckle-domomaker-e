@@ -19,29 +19,31 @@ const login = (req, res) => {
 
   if (!username || !password) {
     return res.status(400).json({
-      error: 'wrong username / password'
+      error: 'wrong username / password',
     });
   }
 
   return res.json({
-    redirect: '/maker'
+    redirect: '/maker',
   });
 };
 
-const signup = (req, res) => {
+const signup = (request, response) => {
+  const req = request;
+  const res = response;
   req.body.username = `${req.body.username}`;
   req.body.pass = `${req.body.pass}`;
   req.body.pass2 = `${req.body.pass2}`;
 
   if (!req.body.username || !req.body.pass || !req.body.pass2) {
     return res.status(400).json({
-      error: 'all fields are required'
+      error: 'all fields are required',
     });
   }
 
   if (req.body.pass !== req.body.pass2) {
     return res.status(400).json({
-      error: 'passwords do not match'
+      error: 'passwords do not match',
     });
   }
 
@@ -57,7 +59,7 @@ const signup = (req, res) => {
     const savePromise = newAccount.save();
 
     savePromise.then(() => res.json({
-      redirect: '/maker'
+      redirect: '/maker',
     }));
 
     savePromise.catch((err) => {
@@ -65,16 +67,15 @@ const signup = (req, res) => {
 
       if (err.code === 11000) {
         return res.status(400).json({
-          error: 'username already in use'
+          error: 'username already in use',
         });
       }
 
       return res.status(400).json({
-        error: 'an error occurred'
+        error: 'an error occurred',
       });
-    })
-
-  })
+    });
+  });
 };
 
 module.exports.loginPage = loginPage;
