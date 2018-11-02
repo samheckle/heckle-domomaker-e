@@ -10,7 +10,18 @@ var handleDomo = function handleDomo(e) {
     }
 
     sendAjax('POST', $("#domoForm").attr("action"), $("#domoForm").serialize(), function () {
-        loadDomosFromServer();
+        loadDomosFromServer($("#token").val());
+    });
+
+    return false;
+};
+
+var handleDelete = function handleDelete(e) {
+    e.preventDefault();
+
+    console.dir($("#deleteDomo").serialize());
+    sendAjax('POST', $("#deleteDomo").attr("action"), $("#deleteDomo").serialize(), function () {
+        loadDomosFromServer($("#token").val());
     });
 
     return false;
@@ -38,7 +49,7 @@ var DomoForm = function DomoForm(props) {
             "Color: "
         ),
         React.createElement("input", { id: "domoColor", type: "text", name: "color", placeholder: "Domo Color" }),
-        React.createElement("input", { type: "hidden", name: "_csrf", value: props.csrf }),
+        React.createElement("input", { id: "token", type: "hidden", name: "_csrf", value: props.csrf }),
         React.createElement("input", { className: "makeDomoSubmit", type: "submit", value: "Make Domo" })
     );
 };
@@ -60,6 +71,13 @@ var DomoList = function DomoList(props) {
         return React.createElement(
             "div",
             { key: domo._id, className: "domo", style: { backgroundColor: domo.color } },
+            React.createElement(
+                "form",
+                { id: "deleteDomo", onSubmit: handleDelete, action: "/deleteDomo", method: "POST", style: { position: "absolute", right: "2%" } },
+                React.createElement("input", { type: "hidden", name: "_id", value: domo._id }),
+                React.createElement("input", { id: "token", type: "hidden", name: "_csrf", value: props.csrf }),
+                React.createElement("input", { style: { height: "20px" }, type: "image", src: "/assets/img/trash.png", border: "0", alt: "Submit" })
+            ),
             React.createElement("img", { src: "/assets/img/domoface.jpeg", alt: "domo face", className: "domoFace" }),
             React.createElement(
                 "h3",
@@ -80,23 +98,24 @@ var DomoList = function DomoList(props) {
 
     return React.createElement(
         "div",
-        { className: "domoList" },
+        { className: "domoList", style: { position: "relative" } },
         domoNodes
     );
 };
 
-var loadDomosFromServer = function loadDomosFromServer() {
+var loadDomosFromServer = function loadDomosFromServer(csrf) {
+    console.dir(csrf);
     sendAjax('GET', '/getDomos', null, function (data) {
-        ReactDOM.render(React.createElement(DomoList, { domos: data.domos }), document.querySelector("#domos"));
+        ReactDOM.render(React.createElement(DomoList, { domos: data.domos, csrf: csrf }), document.querySelector("#domos"));
     });
 };
 
 var setup = function setup(csrf) {
     ReactDOM.render(React.createElement(DomoForm, { csrf: csrf }), document.querySelector("#makeDomo"));
 
-    ReactDOM.render(React.createElement(DomoList, { domos: [] }), document.querySelector("#domos"));
+    ReactDOM.render(React.createElement(DomoList, { domos: [], csrf: csrf }), document.querySelector("#domos"));
 
-    loadDomosFromServer();
+    loadDomosFromServer(csrf);
 };
 
 var getToken = function getToken() {

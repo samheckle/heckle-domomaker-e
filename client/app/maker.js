@@ -8,11 +8,22 @@ const handleDomo = (e) => {
     }
 
     sendAjax('POST', $("#domoForm").attr("action"), $("#domoForm").serialize(), function () {
-        loadDomosFromServer();
+        loadDomosFromServer($("#token").val());
     });
 
     return false;
 };
+
+const handleDelete = (e) => {
+    e.preventDefault();
+    
+    console.dir($("#deleteDomo").serialize())
+    sendAjax('POST', $("#deleteDomo").attr("action"), $("#deleteDomo").serialize(), function () {
+        loadDomosFromServer($("#token").val());
+    });
+
+    return false;
+}
 
 const DomoForm = (props) => {
     return (
@@ -23,7 +34,7 @@ const DomoForm = (props) => {
             <input id="domoAge" type="text" name="age" placeholder="Domo Age" />
             <label htmlFor="color">Color: </label>
             <input id="domoColor" type="text" name="color" placeholder="Domo Color" />
-            <input type="hidden" name="_csrf" value={props.csrf} />
+            <input id="token" type="hidden" name="_csrf" value={props.csrf} />
             <input className="makeDomoSubmit" type="submit" value="Make Domo" />
         </form>
     )
@@ -41,6 +52,11 @@ const DomoList = function (props) {
     const domoNodes = props.domos.map(function (domo) {
         return (
             <div key={domo._id} className="domo" style={{backgroundColor: domo.color}}>
+                <form id="deleteDomo" onSubmit={handleDelete} action="/deleteDomo" method='POST' style={{position: "absolute", right: "2%"}}>
+                    <input type="hidden" name="_id" value={domo._id} />
+                    <input id="token" type="hidden" name="_csrf" value={props.csrf} />
+                    <input style={{height: "20px"}} type="image" src="/assets/img/trash.png" border="0" alt="Submit" />
+                </form>
                 <img src="/assets/img/domoface.jpeg" alt="domo face" className="domoFace" />
                 <h3 className="domoName"> Name: {domo.name} </h3>
                 <h3 className="domoAge"> Age: {domo.age} </h3>
@@ -49,16 +65,17 @@ const DomoList = function (props) {
     });
 
     return (
-        <div className="domoList">
+        <div className="domoList" style={{position: "relative"}}>
             {domoNodes}
         </div>
     );
 };
 
-const loadDomosFromServer = () => {
+const loadDomosFromServer = (csrf) => {
+    console.dir(csrf)
     sendAjax('GET', '/getDomos', null, (data) => {
         ReactDOM.render(
-            <DomoList domos={data.domos} />,
+            <DomoList domos={data.domos} csrf={csrf} />,
             document.querySelector("#domos")
         );
     });
@@ -71,11 +88,11 @@ const setup = function (csrf) {
     );
 
     ReactDOM.render(
-        <DomoList domos={[]} />,
+        <DomoList domos={[]} csrf={csrf} />,
         document.querySelector("#domos")
     );
 
-    loadDomosFromServer();
+    loadDomosFromServer(csrf);
 };
 
 const getToken = () => {
